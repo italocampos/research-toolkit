@@ -3,7 +3,7 @@ of the TS'''
 
 from .topology import Topology, MultiSourcedTopology
 from random import randint, random
-import copy
+import copy, pandapower as pp
 
 # Defining contants for the functions
 
@@ -43,8 +43,18 @@ def create_multisourced_topology(pp_net):
 	return top
 
 
-def make_switch_operations(line_vector, pp_net):
-	for i, value in enumerate(line_vector, start=0):
+def make_switch_operations(solution, pp_net):
+	''' Sets the switch states of 'solution' in the 'pp_net'
+
+	Parameters
+	----------
+	solution : list
+		The solution to be applied in the 'pp_net'.
+	pp_net : pandapower.auxiliary.pandapowerNet
+		The pandapower net where the switch states should be applied.
+	'''
+
+	for i, value in enumerate(solution, start=0):
 		pp_net.switch['closed'][i] = bool(value)
 
 
@@ -149,3 +159,80 @@ def get_lines_probability(topology, source):
 
 def draw(probability = 0.5):
 	return random() < probability
+
+
+def next_binary(binary):
+	''' Returns the binary next to the provided 'binary'
+
+	The provide 'binary' must be reversed against the natural sense of reading.
+	This function updates the provided 'binary' to the next number and return
+	None.
+
+	Parameters
+	----------
+	binary : list
+		A list representing a binary number
+	
+	Returns
+	-------
+	list
+		A list representing the binary next to the provided 'binary'
+	'''
+
+	if binary != []:
+		i = 0
+		while binary[i] == 1:
+			binary[i] = 0
+			i += 1
+			if i == len(binary):
+				binary.append(1)
+				return
+		binary[i] = 1
+	else:
+		binary.append(0)
+
+
+def value_of_solution(solution, net):
+	''' Returns the value of the solution in the objective function
+
+	This function has the same role that 'tools.objective_function' function,
+	but this function doesn't depends on 'Topology' objects.
+
+	Parameters
+	----------
+	solution : list
+		A solution to be verified in the objective function.
+	net : pandapower.auxiliary.pandapowerNet
+		The pandapower net representing the network model.
+	
+	Returns
+	-------
+	int
+		The value of provided 'solution' in the objective function.
+	'''
+
+	make_switch_operations(solution, net)
+	return len(net.bus) - len(list(pp.topology.unsupplied_buses(net)))
+
+
+def format_solution(solution, net):
+	''' Returns a 'solution' with the same length than 'net.switch'
+
+	Parameters
+	----------
+	solution : list
+		The solution to be formated.
+	net : pandapower.auxiliary.pandapowerNet
+		The pandapower net representing the network model.
+	
+	Returns
+	-------
+	list
+		The formated solution according the 'net.switch' length.
+	'''
+
+	sol = solution.copy()
+	if len(sol) < len(net.switch):
+		return sol + [0 for _ in range(len(sol), len(net.switch))]
+	else:
+		return sol

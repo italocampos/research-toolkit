@@ -34,7 +34,7 @@ def run(loops = 10):
 		'total_i': int, # The total iterations
 		'i_best': int, # The iteration of the best solution
 		'fault': list, # The list with the fault points
-		'i_local': int, # The amout of loops of the lcal search
+		'i_local': int, # The amout of loops of the local search
 		'itm': int, # The loops for reset the search with ITM
 		'max_i': # The max loops for stop the search
 		}
