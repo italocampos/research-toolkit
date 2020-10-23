@@ -81,7 +81,7 @@ def run(loops = 10):
 		top.add_abstract_edge('bus1', 'bus2')
 
 		# Defining manually the bridge lines according to the model
-		bridges = [0, 4, 9]
+		bridges = [0, 9]
 		# ---------------------------------------------------------
 
 		# The variable that controls the loop
@@ -95,11 +95,6 @@ def run(loops = 10):
 
 		# Defining the fault points
 		fault = [4]
-		#fault = [top.get_edge_index('bus2', 'bus3')]
-		#fault = [top.get_edge_index('bus5', 'bus6')]
-		#fault = [top.get_edge_index('bus3', 'bus4'), top.get_edge_index('bus26', 'bus27'), top.get_edge_index('bus9', 'bus10')]
-		#fault = [top.get_edge_index('bus18', 'bus19'), top.get_edge_index('bus10', 'bus11')]
-		#fault = [top.get_edge_index('bus4', 'bus5'), top.get_edge_index('bus8', 'bus9'), top.get_edge_index('bus20', 'bus21'), top.get_edge_index('bus15', 'bus16')]
 
 		# Applying the fault points
 		tools.set_faults(top, fault)
