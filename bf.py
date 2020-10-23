@@ -35,72 +35,76 @@ def run():
         }
     '''
 
-    # Defines the bridge lines of the model
-    bridges = [0, 1]
+    # > Defines the bridge lines of the model
+    bridges = [0, 4, 9]
 
-    # Defines the network model used in the search
-    net = models.network10bus()
+    # > Defines the network model used in the search
+    net = models.network16bus()
 
-    # Defining the initial solution
+    # > Creating the topology correspondent to the model
+    top = tools.create_multisourced_topology(net)
+
+    # > Creating abstract lines (for multi-sourced models)
+    # top.add_abstract_edge('bus0', 'bus1') # for 10-bus
+    top.add_abstract_edge('bus0', 'bus1') # for 16-bus
+    top.add_abstract_edge('bus1', 'bus2') # for 16-bus
+
+    # > Defining the source for graph searches
+    source = 'bus1'
+
+    # > Defining the initial solution
     solution = [1]
 
-    # The list with the optimal solutions found
+    # > The list with the optimal solutions found
     optimal_solutions = list()
 
-    # The first best solution found
-    best = solution.copy()
+    # > The value of the best solution(s) found
+    # >> Passing the evaluated solution to the topology
+    top.set_edge_states(tools.format_solution(solution, net))
+    # >> Getting the value of the solution in the objective function
+    best_value = tools.objective_function(top, source)
+
+    # A variable to help the calculation of the progress of the search
+    previous_size = len(solution)
+
 
     # MAIN LOOP ---------------------------------------------------------------
     while len(solution) <= len(net.switch):
-        # If the solution has the brige lines opened, then it is null
-        pass
+        # > Gets the formated solution
+        sol = tools.format_solution(solution, net)
+        # > Passing the evaluated solution to the topology
+        top.set_edge_states(sol)
 
-        # =====
-        # Removing cycles
-        '''
-        for i in range(len(local_search)):
-            top.set_edge_states(local_search[i])
-            for cycle in top.cycles(source, search = 'bfs'):
-                #print(color.magenta('    The topology has cycles. Fixing it...'))
-                top.deactivate_edge(top.get_edge_index(cycle[0], cycle[1]))
-                # Update the solution removing its cycles
-                local_search[i] = top.get_edge_states()
+        # > If the solution has one of the brige lines opened, then it is null
+        if tools.has_bridges_closed(sol, bridges):
+            # > Gets the value of the solution of this iteration
+            sol_value = tools.objective_function(top, source)
+            # > If a new best solution is found, set it as new best solution
+            if sol_value > best_value:
+                # > Testing the feasibility of the solution
+                if (top.cycles(source) == []) and tools.validate_voltages(sol, net) and tools.validate_current(sol, net):
+                    print(color.green('A new best solution was found!', 'bold'))
+                    optimal_solutions.clear()
+                    optimal_solutions.append(sol.copy())
+                    best_value = sol_value
+            elif sol_value == best_value:
+                # > Testing the feasibility of the solution
+                if (top.cycles(source) == []) and tools.validate_voltages(sol, net) and tools.validate_current(sol, net):
+                    print(color.blue('An other solution has the same value of the best solution. Saving it...',))
+                    optimal_solutions.append(sol.copy())
         
-        #print('  Running the power flow...')
-        valid_solutions = list()
-        for solution in local_search:
-            # Setting the solution in the network switching
-            top.set_edge_states(solution)
-            tools.make_switch_operations(top.get_edge_states(), net)
-            try:
-                # Running powerflow
-                pp.runpp(net)
+        # > Printing the progress of the method
+        if previous_size < len(solution):
+            previous_size = len(solution)
+            if len(solution) % round(len(net.switch) * 0.1) == 0:
+                print(color.yellow('> Method progress: {percent}%...'.format(
+                    percent = round(len(solution)/len(net.switch)*100) - 1
+                )))
 
-                # Checking voltage constraints
-                for index, voltage in enumerate(net.res_bus['vm_pu'], start=0):
-                    if abs(1 - voltage) > v_variation: # out of the voltage constraints
-                        #print(color.magenta('    Bus out of voltage contraints. Fixing it...'))
-                        bus = top.get_vertex_name(index)
-                        for adjacent in top.get_adjacent(bus):
-                            top.deactivate_edge(top.get_edge_index(bus, adjacent))
-                
-                # Passing the topology alterations to the network
-                tools.make_switch_operations(top.get_edge_states(), net)
+        tools.next_binary(solution)
+    
+    return optimal_solutions
 
-                # Running the power flow again
-                pp.runpp(net)
-                
-                # Checking current constraints
-                for index, current in enumerate(net.res_line['loading_percent'], start=0):
-                    if current > 100 * (1 + i_variation): # out of the current constraints
-                        #print(color.magenta('    Line out of current limits. Fixing it...'))
-                        top.deactivate_edge(index)
 
-                # Saving the generated solution in the valid solution list
-                valid_solutions.append(top.get_edge_states())
-
-            except(pp.powerflow.LoadflowNotConverged):
-                print(color.red('  ### ERROR: Power flow not converged. Ignoring the solution.'))
-                continue
-        '''
-        # =====
+if __name__ == "__main__":
+    print(run())

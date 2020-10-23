@@ -12,6 +12,17 @@ MAX_PROB = 0.7
 
 
 def create_topology(pp_net):
+	''' Creates a topology for a models
+
+	The topology created is a graph that implements some graph functions (like
+	cycles detection, conectivity, searches, and more).
+
+	Parameters
+	----------
+	pp_net : pandapower.auxiliary.pandapowerNet
+		The pandapower net from which the topology will be generated.
+	'''
+
 	top = Topology()
 	# Creating vertices (buses)
 	for bus in pp_net.bus['name']:
@@ -28,6 +39,17 @@ def create_topology(pp_net):
 
 
 def create_multisourced_topology(pp_net):
+	''' Creates a topology for multi-sourced models
+
+	The topology created is a topology with support to abstract edges. This
+	aproach is used to avoid cyclic tipologies to multi-sourced models.
+
+	Parameters
+	----------
+	pp_net : pandapower.auxiliary.pandapowerNet
+		The pandapower net from which the topology will be generated.
+	'''
+
 	top = MultiSourcedTopology()
 	# Creating vertices (buses)
 	for bus in pp_net.bus['name']:
@@ -59,12 +81,48 @@ def make_switch_operations(solution, pp_net):
 
 
 def swap(index_a, index_b, line_vector):
+	''' Swaps the values of two indexes in the provided 'line_vector'
+
+	Parameters
+	----------
+	index_a : int
+		The first index to be swapped.
+	index_b : int
+		The second index to be swapped.
+	line_vector : list
+		The list where the values of 'index_a' and 'index_b' will be swapped.
+	
+	Returns
+	-------
+	list
+		The swapped list.
+	'''
+
 	lv = line_vector.copy()
 	lv[index_a], lv[index_b] = lv[index_b], lv[index_a]
 	return lv
 
 
 def objective_function(topology, root):
+	''' Returns the value of the 'topology' in the objective function
+
+	The objective function is defined as:
+		Max(x) = x1 + x2 + ... + xi,
+		where xi are the buses recovered by in the topology.
+	
+	Parameters
+	----------
+	topology : .tolopogy.Topology
+		The topology object with the solution to be evaluated.
+	root : str
+		The name of the root vertex in 'topology'.
+	
+	Returns
+	-------
+	int
+		The value of the provided 'topology' in the objective function.
+	'''
+	
 	return len(topology.conex_vertices(root))
 
 
@@ -236,3 +294,97 @@ def format_solution(solution, net):
 		return sol + [0 for _ in range(len(sol), len(net.switch))]
 	else:
 		return sol
+
+
+def has_bridges_closed(solution, bridges):
+	''' Checks if the 'solution' has the 'bridge' lines all closed
+
+	Parameters
+	----------
+	solution : list
+		The solution to be checked.
+	bridges : list
+		A list with the indexes of the bridge lines (must be less than
+		len(solution)).
+	
+	Returns
+	-------
+	bool
+		The bool that indicates if all the 'bridge' lines has the value '1' in
+		'solution'.
+	'''
+
+	for bridge in bridges:
+		if solution[bridge] != 1:
+			return False
+	return True
+
+
+def validate_voltages(solution, net):
+	''' Validates a solution against the voltage constraints
+
+	Parameters
+	----------
+	solution : list
+		The solution to be validated.
+	net : pandapower.auxiliary.pandapowerNet
+		The pandapower net representing the network model.
+	
+	Returns
+	-------
+	bool
+		The bool that indicates if the 'solution' is valid or not.
+	'''
+
+	if len(solution) == 11:
+		v_variation = 0.05
+	elif len(solution) == 16:
+		v_variation = 0.05
+	elif len(solution) == 37:
+		v_variation = 0.18
+	elif len(solution) == 132:
+		v_variation = 0.15
+	else:
+		raise Exception('Solution not supported.')
+
+	make_switch_operations(solution, net)
+	try:
+		pp.runpp(net)
+		for voltage in net.res_bus['vm_pu']:
+			if abs(1 - voltage) > v_variation: # out of the voltage constraints
+				return False
+	except(pp.powerflow.LoadflowNotConverged):
+		print('  ### Power flow not converged. Ignoring the solution.')
+		return False
+	return True
+
+
+def validate_current(solution, net):
+	''' Validates a solution against the current constraints
+
+	Parameters
+	----------
+	solution : list
+		The solution to be validated.
+	net : pandapower.auxiliary.pandapowerNet
+		The pandapower net representing the network model.
+	
+	Returns
+	-------
+	bool
+		The bool that indicates if the 'solution' is valid or not.
+	'''
+
+	# Defining the current varition
+	i_variation = 0.05
+	
+	make_switch_operations(solution, net)
+	try:
+		pp.runpp(net)
+		for current in net.res_line['loading_percent']:
+			if current > 100 * (1 + i_variation): # out of the current constraints
+				return False
+	except(pp.powerflow.LoadflowNotConverged):
+		print('  ### Power flow not converged. Ignoring the solution.')
+		return False
+	return True
