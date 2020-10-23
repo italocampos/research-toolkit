@@ -36,13 +36,15 @@ def run():
     '''
 
     # > Defines the bridge lines of the model
-    bridges = [0, 4, 9]
+    bridges = [0, 9]
+    #bridges = [0]
 
     # > Defines the network model used in the search
     net = models.network16bus()
 
     # > Creating the topology correspondent to the model
-    top = tools.create_multisourced_topology(net)
+    top = tools.create_multisourced_topology(net) # for 10-bus and 16-bus
+    #top = tools.create_topology(net) # for 33-bus and 119-bus
 
     # > Creating abstract lines (for multi-sourced models)
     # top.add_abstract_edge('bus0', 'bus1') # for 10-bus
@@ -55,6 +57,9 @@ def run():
     # > Defining the initial solution
     solution = [1]
 
+    # > Defining the failed lines
+    failed_lines = [4, 3]
+
     # > The list with the optimal solutions found
     optimal_solutions = list()
 
@@ -65,7 +70,7 @@ def run():
     best_value = tools.objective_function(top, source)
 
     # A variable to help the calculation of the progress of the search
-    previous_size = len(solution)
+    max_solution = tools.binary_to_decimal([1 for _ in net.switch.values])
 
 
     # MAIN LOOP ---------------------------------------------------------------
@@ -75,8 +80,8 @@ def run():
         # > Passing the evaluated solution to the topology
         top.set_edge_states(sol)
 
-        # > If the solution has one of the brige lines opened, then it is null
-        if tools.has_bridges_closed(sol, bridges):
+        # > Checks if the solution matches the bridge and the failed lines
+        if tools.bridges_closed(sol, bridges) and tools.failed_lines_opened(sol, failed_lines):
             # > Gets the value of the solution of this iteration
             sol_value = tools.objective_function(top, source)
             # > If a new best solution is found, set it as new best solution
@@ -90,16 +95,16 @@ def run():
             elif sol_value == best_value:
                 # > Testing the feasibility of the solution
                 if (top.cycles(source) == []) and tools.validate_voltages(sol, net) and tools.validate_current(sol, net):
-                    print(color.blue('An other solution has the same value of the best solution. Saving it...',))
+                    #print(color.blue('An other solution has the same value of the best solution. Saving it...',))
                     optimal_solutions.append(sol.copy())
         
         # > Printing the progress of the method
-        if previous_size < len(solution):
-            previous_size = len(solution)
-            if len(solution) % round(len(net.switch) * 0.1) == 0:
-                print(color.yellow('> Method progress: {percent}%...'.format(
-                    percent = round(len(solution)/len(net.switch)*100) - 1
-                )))
+        sol.reverse()
+        current_solution = tools.binary_to_decimal(sol)
+        if current_solution % round(max_solution * 0.05) == 0:
+            print(color.yellow('> Method progress: {percent}%...'.format(
+                percent = round(current_solution/max_solution*100)
+            )))                
 
         tools.next_binary(solution)
     

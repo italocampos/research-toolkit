@@ -296,7 +296,7 @@ def format_solution(solution, net):
 		return sol
 
 
-def has_bridges_closed(solution, bridges):
+def bridges_closed(solution, bridges):
 	''' Checks if the 'solution' has the 'bridge' lines all closed
 
 	Parameters
@@ -312,12 +312,52 @@ def has_bridges_closed(solution, bridges):
 	bool
 		The bool that indicates if all the 'bridge' lines has the value '1' in
 		'solution'.
+	
+	Raises
+	------
+	Exception
+		In case of len(briges) > len(solution)
 	'''
 
-	for bridge in bridges:
-		if solution[bridge] != 1:
-			return False
-	return True
+	if len(bridges) <= len(solution):
+		for bridge in bridges:
+			if solution[bridge] != 1:
+				return False
+		return True
+	else:
+		raise(Exception("len(bridges) must be less than len(solution)"))
+
+
+def failed_lines_opened(solution, failed_lines):
+	''' Checks if the 'solution' has the 'failed_lines' all opened
+
+	Parameters
+	----------
+	solution : list
+		The solution to be checked.
+	failed_lines : list
+		A list with the indexes of the faulted lines (must be less than
+		len(solution)).
+	
+	Returns
+	-------
+	bool
+		The bool that indicates if all the 'bridge' lines has the value '1' in
+		'solution'.
+
+	Raises
+	------
+	Exception
+		In case of len(failed_lines) > len(solution)
+	'''
+
+	if len(failed_lines) <= len(solution):
+		for line in failed_lines:
+			if solution[line] != 0:
+				return False
+		return True
+	else:
+		raise(Exception("len(failed_lines) must be less than len(solution)"))
 
 
 def validate_voltages(solution, net):
@@ -388,3 +428,31 @@ def validate_current(solution, net):
 		print('  ### Power flow not converged. Ignoring the solution.')
 		return False
 	return True
+
+
+def binary_to_decimal(binary):
+	''' Converts a binary (under list format) to decimal
+
+	Parameters
+	----------
+	binary : list
+		The binary number to be converted.
+	
+	Returns
+	-------
+	int
+		The decimal correspondent to 'binary'.
+	'''
+
+	decimal = 0
+	hold = 0
+	i = 0
+	exp = len(binary) - 1
+	while i < len(binary):
+		x = int(binary[i])
+		quot= 2**exp
+		hold = x*quot
+		i += 1
+		exp -= 1
+		decimal = decimal + hold
+	return decimal
