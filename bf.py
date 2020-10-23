@@ -58,7 +58,7 @@ def run():
     solution = [1]
 
     # > Defining the failed lines
-    failed_lines = [4, 3]
+    failed_lines = [4]
 
     # > The list with the optimal solutions found
     optimal_solutions = list()
