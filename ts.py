@@ -55,16 +55,16 @@ def run(loops = 10):
 		# For single-sourced models, use the lines of code below:
 		# -------------------------------------------------------
 		# Getting the test model
-		net = models.network33bus()
+		#net = models.network33bus()
 
 		# Getting the power source name (it works only for one-sourced nets)
-		source = net.bus['name'][int(net.ext_grid['bus'])]
+		#source = net.bus['name'][int(net.ext_grid['bus'])]
 
 		# Getting the initial topology
-		top = tools.create_topology(net)
+		#top = tools.create_topology(net)
 		# Getting the indexes of the bridge lines between the source (bus0) and
 		# the first fork
-		bridges = tools.bridge_lines(top, source)
+		#bridges = tools.bridge_lines(top, source)
 
 		# For multiple-sourced models, use the lines of code below:
 		# ---------------------------------------------------------
@@ -230,7 +230,7 @@ def run(loops = 10):
 						valid_solutions.append(top.get_edge_states())
 
 					except(pp.powerflow.LoadflowNotConverged):
-						print(color.red('  ### ERROR: Power flow not converged. Ignoring the solution.'))
+						print(color.red('  ### Power flow not converged. Ignoring the solution.'))
 						continue
 
 				# Getting the best of local search
