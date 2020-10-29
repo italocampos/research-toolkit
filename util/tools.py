@@ -12,7 +12,7 @@ MAX_PROB = 0.7
 
 
 def create_topology(pp_net):
-    ''' Creates a topology for a models
+    ''' Creates a topology for a model
 
     The topology created is a graph that implements some graph functions (like
     cycles detection, conectivity, searches, and more).
@@ -21,6 +21,11 @@ def create_topology(pp_net):
     ----------
     pp_net : pandapower.auxiliary.pandapowerNet
         The pandapower net from which the topology will be generated.
+    
+    Returns
+    -------
+    Topology
+        The 'Topology' object for the provided 'net'.
     '''
 
     top = Topology()
@@ -123,7 +128,7 @@ def objective_function(topology, root):
         The value of the provided 'topology' in the objective function.
     '''
     
-    return len(topology.conex_vertices(root))
+    return len(topology.connected_vertices(root))
 
 
 def best_of(solutions, topology, source):
