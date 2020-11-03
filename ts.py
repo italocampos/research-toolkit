@@ -104,7 +104,7 @@ def run(loops = 10):
         v_variation = 0.05
 
         # Limit for current variation
-        i_variation = 0.05
+        i_variation = 0.0
 
         # Best solution (starting with the initial solution)
         best = top.get_edge_states()

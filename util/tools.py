@@ -421,7 +421,7 @@ def validate_current(solution, net):
     '''
 
     # Defining the current varition
-    i_variation = 0.05
+    i_variation = 0.00
     
     make_switch_operations(solution, net)
     try:
