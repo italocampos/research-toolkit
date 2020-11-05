@@ -132,6 +132,23 @@ def objective_function(topology, root):
 
 
 def best_of(solutions, topology, source):
+    ''' Returns the best solution among 'solutions'
+
+    Parameters
+    ----------
+    solutions : list
+        The list of solutions to be compared among them.
+    topology : .tolopogy.Topology
+        The topology object corresponding the itens of 'solutions'.
+    root : str
+        The name of the root vertex in 'topology'.
+    
+    Returns
+    -------
+    list
+        The best solution among 'solutions'.
+    '''
+
     if solutions != []:
         sol = solutions.copy()
         best = sol.pop(0)

@@ -68,7 +68,7 @@ def run(loops = 10):
 
         # For multiple-sourced models, use the lines of code below:
         # ---------------------------------------------------------
-        net = models.network16bus()
+        net = models.network10bus()
 
         # Defines the power source name
         source = 'bus1'
@@ -78,10 +78,10 @@ def run(loops = 10):
 
         # Adding the abstract edges to the topology
         top.add_abstract_edge('bus0', 'bus1')
-        top.add_abstract_edge('bus1', 'bus2')
+        #top.add_abstract_edge('bus1', 'bus2')
 
         # Defining manually the bridge lines according to the model
-        bridges = [0, 9]
+        bridges = [0, 1]
         # ---------------------------------------------------------
 
         # The variable that controls the loop
@@ -94,7 +94,7 @@ def run(loops = 10):
         prob_vector = tools.get_lines_probability(top, source)
 
         # Defining the fault points
-        fault = [4]
+        fault = [3]
 
         # Applying the fault points
         tools.set_faults(top, fault)
@@ -266,7 +266,7 @@ def run(loops = 10):
             #print('  Comparing the selected solution with the best solution found...')
             if best != []:
                 sel = tools.best_of([selected, best], top, source)
-                if sel != best:
+                if sel != best and tools.value_of_solution(selected, net) > tools.value_of_solution(best, net):
                     print(color.green('IMPROVEMENT: Improving solution at iteration %d.' % iteration, 'bold'))
                     best = sel.copy()
                     improved = iteration
