@@ -300,7 +300,9 @@ def run(loops = 10):
             #print('Selected:', selected)
             #print('Best:', best)
             iteration += 1
-            if iteration - improved > max_i:
+            # The TS stops whether it reaches the max iterarion or find a
+            # optimal solution
+            if iteration - improved > max_i or tools.value_of_solution(best, net) == len(net.bus.values):
                 stop = True
                 elapsed_time = time.time() - begin
                 print(color.yellow('Elapsed time: %f s' % elapsed_time))
@@ -313,7 +315,7 @@ def run(loops = 10):
             'best': best,
             'total_i': iteration,
             'i_best': improved,
-            'fault': [(top.get_edge(e)[0], top.get_edge(e)[1]) for e in fault],
+            'fault': fault,
             'i_local': max_local,
             'itm': max_reset,
             'max_i': max_i,
