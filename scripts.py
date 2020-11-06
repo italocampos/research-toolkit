@@ -131,12 +131,10 @@ def select_best(results):
 
     res = results.copy()
     initial = res.pop(0)
-    top.set_edge_states(initial['best'])
-    value = objective_function(top, source)
+    value = ev.value(initial['best'])
     index = 0
     for i, r in enumerate(res, start=1):
-        top.set_edge_states(r['best'])
-        v = objective_function(top, source)
+        v = ev.value(initial['best'])
         if v > value:
             value = v
             index = i
@@ -163,5 +161,4 @@ def show_all_values(results):
         }
     '''
     for i, r in enumerate(results):
-        top.set_edge_states(r['best'])
-        print('Solution: %d; value: %d' % (i, objective_function(top, source)))
+        print('Solution: %d; value: %d' % (i, ev.value(r['best'])))
