@@ -47,7 +47,7 @@ def evaluate_solutions(results):
     '''
 
     for i, res in enumerate(results):
-        print(color.blue('\nSEARCH #%d ------------' % (i + 1)))
+        print(color.blue('\nSEARCH #%d ------------' % i))
         validation = ev.validate(res['best'])
         if validation:
             if len(res['best']) == len(default_topologies['10-bus']):
