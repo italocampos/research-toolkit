@@ -166,7 +166,7 @@ def show_all_values(results):
         In case the solution don't match any supported network model.
     '''
 
-    print(color.yellow('EXECUTION;NAB;NRB;VALUE;TIME (S);OPENED SW;CLOSED SW;FAULT LINES'))
+    print(color.yellow('EXECUTION;NAB;NRB;VALUE;TIME (S);IBS;OPENED SW;CLOSED SW;FAULT LINES'))
     for i, res in enumerate(results):
         if len(res['best']) == len(default_topologies['10-bus']):
             default = default_topologies['10-bus'].copy()
@@ -205,12 +205,13 @@ def show_all_values(results):
             if element == 1 and j not in ones:
                 closed_switches.append(j)
         
-        print('{execution};{nab};{nrb};{value};{time};{opened_sw};{closed_sw};{fault_lines}'.format(
+        print('{execution};{nab};{nrb};{value};{time};{iteration_bs};{opened_sw};{closed_sw};{fault_lines}'.format(
             execution = i,
             nab = len(ev.unsupplied_buses(faulted)),
             nrb = value - (ev.value(default) - len(ev.unsupplied_buses(faulted))),
             value = value,
             time = res['time'],
+            iteration_bs = res['i_best'],
             opened_sw = opened_switches,
             closed_sw =  closed_switches,
             fault_lines = res['fault'],
@@ -339,3 +340,27 @@ def show_closed_lines(results):
                 closed_switches.append(j)
             
         print(closed_switches)
+
+
+def validate_solutions(solutions):
+    ''' Prints the validation for each solution in 'solutions'
+
+    Parameters
+    ----------
+    solutions : list
+        A list with the results of the TS. This list is a list of dicts under
+        the following form:
+        {
+            'time': float, # The time wasted in the search
+            'best': list # The best solution found in the search,
+            'total_i': int, # The number of the final iteration 
+            'i_best': int, # The iteration where the best solution was found
+            'fault': list, # The list with the faulted lines
+            'i_local': int, # The parameter of the max local search
+            'itm': int, # The parameter of the max iteration to reset the TS
+            'max_i': int, # The parameter of the max iteration set in the TS
+        }
+    '''
+
+    for i, sol in enumerate(solutions):
+        print('Search #%d:' % i, ev.validate(sol['best']))
